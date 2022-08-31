@@ -8,27 +8,30 @@ cards_UI <- function(id){
   ns <- NS(id)
   tagList(
     infoBoxOutput(outputId = ns("toptraits"), width = 12),
-    plotOutput(outputId = ns("lineplot"))
+    plotOutput(outputId = ns("lineplot"), width = "100%", height = "200px")
   )
 }
 
-cards_server <- function(id, traitr, color, dataframe, icon1){
+cards_server <- function(id, traitr, color, dataframe, icon1, plot_choice){
   moduleServer(id, function(input, output, session) {
 
     getValues <- eventReactive(dataframe, {
       req(dataframe)
       # print(dataframe)
-      datageh <- wrangle_data(dataframe) %>% filter(trait == toupper(traitr))
-      datageh <- datageh %>% arrange(desc(combined))
-      print(datageh)
-
+      datageh <- dataframe %>% filter(trait == toupper(traitr))
+      if(toupper(traitr) == "MCMDS"){
+        datageh <- datageh %>% arrange(combined)
+      }else {
+        datageh <- datageh %>% arrange(desc(combined))
+      }
+      # print(datageh)
       keyvals <- list("accession" = datageh$accession[1], "value" = datageh$combined[1])
-      print(keyvals)
+      # print(keyvals)
       return(keyvals)
     })
 
-
     output$toptraits <- renderInfoBox({
+      req(getValues())
       vals <- getValues()
       full_names <- list("MCMDS" = "Cassava Mosaic", "HI" = "Harvest Index", "DM" = "Dry matter",
                          "SPROUT" = "Sprout", "PLTHT" = "Plant Height",
@@ -39,9 +42,13 @@ cards_server <- function(id, traitr, color, dataframe, icon1){
 
     output$lineplot <- renderPlot({
       req(getValues())
-      uytdata <- linePlot(trait_to_plot = toupper(traitr), imported_data = dataframe)
+      if(plot_choice == TRUE){
+        uytdata <- linePlot(trait_to_plot = toupper(traitr), imported_data = dataframe)
+      } else if(plot_choice == FALSE) {
+        uytdata <- linePlot_environment(trait_to_plot = toupper(traitr), imported_data = dataframe)
+      }
       uytdata
-    }, width = 400,  height = 150)
+    })
   })
 }
 
@@ -58,4 +65,4 @@ cards_server <- function(id, traitr, color, dataframe, icon1){
 #   cards_server(id = "uid",traitr = "DYLD", color = "red", dataframe = dat)
 # }
 
-shinyApp(ui  , server)
+# shinyApp(ui  , server)

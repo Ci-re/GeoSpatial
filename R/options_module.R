@@ -4,9 +4,10 @@ source("_functions.R")
 
 options_ui <- function(id, trigger){
   ns <- NS(id)
-
   tagList(
     bsModal(id = ns("settingsModal"), title = "Settings", trigger = trigger, size = "small",
+            fileInput(placeholder = "Please upload BLUPS data...",inputId = ns("location_dataset"), accept = c("csv","xlsx"), buttonLabel = "Trial",
+                      label = ""),
             pickerInput(
               inputId = ns("top_traits"),
               label = "Select top traits",
@@ -23,48 +24,90 @@ options_ui <- function(id, trigger){
                 maxOptionsText = "Please select at most 3 traits"
               )
             ),
+            prettyCheckbox(
+              inputId = ns("plot_option"), label = "Switch plot",
+              status = "success", outline = TRUE,value = TRUE,
+            ),
+            # switchInput(inputId = ns("plot_option"), label = "Switch", value = TRUE),
             uiOutput(ns("checks_select")),
-            actionButton(ns("save"),"Save",icon = icon("chart-pie"), style = "width: 100%", class = "btn-success")
+            awesomeCheckbox(inputId = ns("select_check_option"),
+                            label = "Calculate Check Difference",
+                            value = FALSE, status = "success"),
+            actionButton(ns("save"),"Load",icon = icon("chart-pie"),
+                         style = "width: 100%", class = "btn-success")
     )
   )
 }
 
 
-options_server <- function(id, dataframe) {
+
+ options_server <- function(id) {
   moduleServer(id, function(input, output, session) {
     # toggleModal(session, "settingsModal",toggle = "toggle")
 
-    list_of_topTraits <- eventReactive(input$save, {
-      # req(input$save)
-      original_list <- c("dyld","fyld","dm","pltht","mcmds","sprout","hi")
-      top_traits <- input$top_traits
-      selected <- fix_listOfTop_Traits(original_list = original_list, top_traits =  top_traits)
-      return(selected)
+    userFile <- reactive({
+      req(input$location_dataset)
+      file1 <- input$location_dataset
+      validate(need(identical(tools::file_ext(file1$datapath), "xls"),"csv, xls or xlsx data needed"))
+      return(file1)
+    })
+
+    touch_data <- reactive({
+      req(userFile())
+      # print(read_xls(userFile()$datapath))
+      SI_data <- get_SI_from_BLUPS(userFile()$datapath)
+      ENV_ <- get_GXE_data(userFile()$datapath)
+      SI_data <- wrangle_data(SI_data)
+      ENV_data <- attach_locs(wrangle_data(ENV_))
+      list_of_data <- list("sindex" = SI_data, "env" = ENV_data)
+      return(list_of_data)
     })
 
     get_AccessionNames <- reactive({
-      req(dataframe)
-      print("hittttttttt")
-      uyt <- dataframe
-      return(unique(uyt$Accession))
-
+      req(userFile())
+      dataframe <- touch_data()$sindex
+      # print(dataframe)
+      # print("hittttttttt")
+      uyt <- wrangle_data(dataframe)
+      # print(uyt)
+      return(unique(uyt$accession))
       # return(unique(wrangle_data(read.csv("../../Visualizations/combo.csv"))$accession))
     })
 
     output$checks_select <- renderUI({
+      req(userFile())
       pickerInput(
-        inputId = session$ns("check_select"),
+        inputId = session$ns("checks_select"),
         label = "Select checks",
         choices = c(get_AccessionNames()),
         multiple = TRUE,
-        # selected = NULL,
+        selected = c(get_AccessionNames()[1:3]),
         options = pickerOptions(
           liveSearch = TRUE,
           style = "btn-primary",
           `action-box` = TRUE,
-          size = 5
+          size = 10
         )
       )
+    })
+
+    list_of_topTraits <- eventReactive(input$save, {
+      # req(input$save)
+      # plot_option()
+      # print(input$plot_option)
+      original_list <- c("dyld","fyld","dm","pltht","mcmds","sprout","hi")
+      top_traits <- input$top_traits
+      opt <- ""
+      if(input$plot_option == TRUE){
+        opt <- TRUE
+      } else {
+        opt <- FALSE
+      }
+      selected <- fix_listOfTop_Traits(original_list = original_list, top_traits =  top_traits)
+      dataframes <- touch_data()
+      # print(input$checks_select)
+      list_return <- list(option = opt, selected = selected, checks = input$checks_select, dataframes = dataframes)
+      return(list_return)
     })
     return(list_of_topTraits)
   })
@@ -77,4 +120,5 @@ options_server <- function(id, dataframe) {
 # }
 #
 # shinyApp(ui , server)
+
 
