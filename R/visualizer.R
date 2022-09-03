@@ -2,6 +2,7 @@ source("hello.R")
 source("_functions.R")
 source("_2function.R")
 source("options_module.R")
+source("mapsfunction.R")
 
 
 visualizer_UI <- function(id){
@@ -50,14 +51,24 @@ visualizer_UI <- function(id){
       tabPanel(title = "Geographical Vix", icon = icon("chart"), fluidRow(
         box(width = 12,
           column(3, uiOutput(ns("select_trait"))),
-          column(3, uiOutput(ns("custom_check"))),
           column(3, uiOutput(ns("select_accession"))),
-          column(3, uiOutput(ns("hint_map")))
+          column(3, uiOutput(ns("select_checks"))),
+          column(3, uiOutput(ns("weather")))
         )
       ), fluidRow(
-        column(6, box(width = 12, plotlyOutput(ns("accession_map")))),
-        column(6, box(width = 12, plotlyOutput(ns("check_map")))),
-        leafletOutput(ns("live_map"))
+        box(width = 9, plotlyOutput(ns("accession_map"), width = "100%", height = "800px")),
+        box(width = 3, uiOutput(ns("check_difference_toggler"))),
+        # box(width = 12, plotlyOutput(ns("check_map"))),
+        box(width = 9, leafletOutput(ns("live_map"))),
+        box(width = 3, radioButtons("weather", "Real time view:",
+                                    c("Rain" = "rainClassic",
+                                      "Temperature" = "temperature",
+                                      "Precipitation" = "precipitationClassic",
+                                      "Clouds" = "cloudsClassic",
+                                      "Pressure" = "pressure",
+                                      "Wind" = "wind"),
+                                    selected = "rainClassic")
+            )
       ))
     )
   )
@@ -125,20 +136,20 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
 
     output$raw_distribution <- DT::renderDataTable({
       req(input$select_top)
-      dataframe <- sindex_dataframe %>% select(-selected)
+      dataframe <- sindex_dataframe %>% dplyr::select(-selected)
       DT::datatable(dataframe[1:input$select_top,], options = list(pageLength = 5, scrollX = TRUE, scrollY = TRUE))
     })
 
     output$check_mean_distribution <- DT::renderDataTable({
       req(input$select_top)
-      dat <- sindex_dataframe %>% select(-selected)
+      dat <- sindex_dataframe %>% dplyr::select(-selected)
       dataframe <- calc_checkMean(dataframe = dat,checks = checks)
       DT::datatable(dataframe[1:input$select_top,], options = list(pageLength = 5, scrollX = TRUE, scrollY = TRUE))
     })
 
     output$correlation <- renderPlotly({
       req(input$select_top)
-      dat <- sindex_dataframe %>% select(-selected)
+      dat <- sindex_dataframe %>% dplyr::select(-selected)
       dat <- sindex_corrplot(dataframe = dat[1:input$select_top,])
       ggplotly(dat)
     })
@@ -147,11 +158,11 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
       req(input$select_top)
       # print(class(input$corr_heat))
       if(input$corr_heat == TRUE){
-        dat <- sindex_dataframe %>% select(-selected)
+        dat <- sindex_dataframe %>% dplyr::select(-selected)
         dat <- sup_heat_corr(dataframe = dat[1:input$select_top,], checks)
         return(dat)
       }else{
-        dat <- sindex_dataframe %>% select(-selected)
+        dat <- sindex_dataframe %>% dplyr::select(-selected)
         dat <- sindex_heatmap(dataframe = dat[1:input$select_top,])
         return(dat)
       }
@@ -159,7 +170,7 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
 
     output$check_diff_plot <- renderPlot({
       req(input$select_top)
-      dat <- sindex_dataframe %>% select(-selected)
+      dat <- sindex_dataframe %>% dplyr::select(-selected)
       dataframe <- calc_checkMean(dataframe = dat,checks = checks)
       barplot <- barplot_checkdiff(import_data = dataframe[1:input$top_frac,])
       return(barplot)
@@ -249,7 +260,7 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
       req(input$trait)
       dataframe <- combined_dataframe %>% filter(trait == toupper(input$trait))
       not_all_na <- function(x) any(!is.na(x))
-      dat <- pivot_wider_function(dataframe) %>% select(where(not_all_na))
+      dat <- pivot_wider_function(dataframe) %>% dplyr::select(where(not_all_na))
       corr_plt <- env_correlation(dat)
       ggplotly(corr_plt)
     })
@@ -258,8 +269,8 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
       req(input$trait)
       dat <- pivot_wider_function(combined_dataframe)
       not_all_na <- function(x) any(!is.na(x))
-      dataframe <- dat %>% filter(trait == toupper(input$trait)) %>% select(-trait) %>%
-        select(where(not_all_na))
+      dataframe <- dat %>% filter(trait == toupper(input$trait)) %>% dplyr::select(-trait) %>%
+        dplyr::select(where(not_all_na))
       if(input$corr_heat_env == TRUE){
         heat_plt <- env_heatmap(dataframe[1:input$select_top_env,])
         return(heat_plt)
@@ -275,7 +286,7 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
       not_all_na <- function(x) any(!is.na(x))
 
 
-      dataframe <- dat %>% filter(trait == toupper(input$trait)) %>% select(where(not_all_na))
+      dataframe <- dat %>% filter(trait == toupper(input$trait)) %>% dplyr::select(where(not_all_na))
 
       dat <- calculate_checkmean(dataframe, checks = checks)
       env_barplot_checkdiff <- env_barplot_checkdiff(dat[1:input$top_frac_env,])
@@ -292,18 +303,18 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
         choices = c("Dry matter" = "dm", "Dry Yield" = "dyld",
                     "Fresh yield" = "fyld", "Sprout" = "sprout",
                     "Mosaic" = "mcmds", "Plant height" = "pltht"),
-        selected = "default",
+        selected = "dm",
         multiple = FALSE
       )
     })
 
-    output$custom_check <- renderUI({
+    output$select_checks <- renderUI({
       req(sindex_dataframe)
       pickerInput(
-        inputId = session$ns("custom_check"),
-        label = "Select checks",
-        choices = unique(sindex_dataframe$accession),
-        selected = "default",
+        inputId = session$ns("select_check"),
+        label = "Checks..",
+        choices = unique(combined_dataframe$accession),
+        selected = combined_dataframe$accession[1:3],
         multiple = TRUE
       )
     })
@@ -311,65 +322,58 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
       req(sindex_dataframe)
       pickerInput(
         inputId = session$ns("select_accession"),
-        label = "Select checks",
-        choices = unique(sindex_dataframe$accession),
-        selected = "default",
-        multiple = TRUE
+        label = "Genotype..",
+        choices = unique(combined_dataframe$accession),
+        selected = combined_dataframe$accession[1],
+        multiple = FALSE
       )
     })
-    output$hint_map <- renderUI({
-      actionButton(
-        inputId = session$ns("hint_map"),
-        label = "",
-        icon = icon("circle-question")
+    output$weather <- renderUI({
+      pickerInput(
+        inputId = session$ns("weather"),
+        label = "Weather..",
+        choices = c("Rainfall", "Temperature"),
+        selected = "Rainfall",
+        multiple = FALSE
       )
     })
 
-    output$loc_map <- renderPlotly({
-      req(input$acc_select)
-      selected <- input$acc_select
-      trait_sel <- ""
+    output$check_difference_toggler <- renderUI({
+      prettyCheckbox(
+        inputId = session$ns("check_difference_toggler"),
+        label = "Toggle check-difference",
+        status = "info", outline = TRUE,value = FALSE,
+      )
+    })
 
-      piv2 <- piv2 %>% filter(accession %in% selected)
+    output$accession_map <- renderPlotly({
+      req(input$select_accession)
+      req(input$select_check)
+      req(input$weather)
 
+      genotype <- input$select_accession
+      weather_data <- input$weather
+      checks <- input$select_check
+      trait <- input$select_trait
+      switchs <- input$check_difference_toggler
+      rendered_map <- render_maps(dataframe = combined_dataframe, checks = checks, trait = trait,
+                                  accession = genotype, weather = weather_data, switch = switchs)
+      ggplotly(rendered_map)
+    })
 
+    output$live_map <- renderLeaflet({
+      req(input$select_accession)
+      req(input$select_check)
+      req(input$weather)
 
-
-
-
-      if(input$switch == FALSE){
-
-      } else {
-        checks <- input$checks_select
-        dat <- geo_data() %>% janitor::clean_names() %>% arrange(desc(combined))
-        # dat %>% View()
-
-        if(length(checks) >= 0){
-          piv2_difference <- calc_checkmean(dat)
-          piv2_difference <- piv2_difference %>% filter(accession %in% selected)
-
-          tf <- ggplot() +
-            # geom_sf(data = lev1, show.legend = TRUE) +
-
-            geom_sf(data = lev1, colour = "white", fill = "grey", size = .1) +
-            geom_text(data = piv2_difference, aes(x = long, y = lat, label = location),
-                      nudge_x = .2, nudge_y = .3, check_overlap = FALSE) +
-            geom_point(data = piv2_difference, mapping = aes(x = long, y = lat, size = values, fill = values, color = category,
-                                                             text = paste0("<b> trait: ",trait,"</b> \n",
-                                                                           "<b> accession: ", accession, "</b> \n",
-                                                                           "<b>",trait_sel ,":" ,values,"</b>")))+
-            # scale_color_viridis_c() +
-            scale_fill_gradient2(low = "red", midpoint = 0, mid = "yellow", high = "green") +
-            scale_color_manual(values = c("darkblue", "blue")) +
-            # coord_sf(xlim = c(2, 6), ylim = c(6, 10), expand = FALSE) +
-            # geom_sf_text(data = lev1, aes(label = statename)) +
-            # theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed",
-            #                                       size = 0.5), panel.background = element_rect(fill = "aliceblue")) +
-            facet_wrap(~fct_inorder(accession), ncol = 2) +
-            theme_gray()
-          return(plotly::ggplotly(tf, tooltip = "text"))
-        }
-      }
+      genotype <- input$select_accession
+      weather_data <- input$weather
+      checks <- input$select_check
+      trait <- input$select_trait
+      switchs <- input$check_difference_toggler
+      render_leaflet_map <- render_leaflet_maps(dataframe = combined_dataframe, checks = checks, trait = trait,
+                                  accession = genotype, weather = weather_data, switch = switchs)
+      return(render_leaflet_map)
     })
 
   })

@@ -6,7 +6,7 @@ source("options_module.R")
 source("visualizer.R")
 
 options(shiny.autoreload = TRUE)
-
+setwd("~/Desktop/git_workspace/GeoSpatial/R")
 ui <- dashboardPage(skin = "black",
   dashboardHeader(title = HTML("MULTILOC"), disable = FALSE, tags$li(class = "dropdown",
                                                             actionButton("settings", "",

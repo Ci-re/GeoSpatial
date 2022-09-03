@@ -18,7 +18,7 @@ checks_mean
 
   # dataset for percentage difference against checks average
   dataframe_checkdiff <- dataframe %>%
-    select(-combined) %>%
+    dplyr::select(-combined) %>%
     mutate(across(where(is.numeric), .fns = ~((./.[accession == "check_mean"]-1)*100))) %>%
     mutate(combined=dataframe$combined)
     # mutate(rank = factor(row_number()))
@@ -30,7 +30,7 @@ env_correlation <- function(dataframe){
   # x <- read.csv("../../Visualizations/combo.csv") %>% janitor::clean_names()
   #
   # dataframe <- x %>% filter(trait == "PLTHT") %>% select(where(not_all_na))
-  dataframe <- dataframe %>% select(where(is.numeric))
+  dataframe <- dataframe %>% dplyr::select(where(is.numeric))
   corr <- round(cor(dataframe, use = "pairwise.complete.obs"), 1)
   p.mat <- cor_pmat(dataframe, use = "pairwise.complete.obs")
 
@@ -300,8 +300,8 @@ env_sup_heat_corr <- function(dataframe, checks){
 env_barplot_checkdiff <- function(import_data, checks){
   barplot_checkdiff <- import_data %>%
     # filter(accession == acc_names[i]) %>%
-    select(-trait) %>%
-    select(accession,everything()) %>%
+    dplyr::select(-trait) %>%
+    dplyr::select(accession,everything()) %>%
     pivot_longer(-c(accession, combined), names_to = "traits", values_to = "values") %>%
     arrange(desc(combined)) %>%
 

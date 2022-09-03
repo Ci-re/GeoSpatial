@@ -45,7 +45,7 @@ attach_locs <- function(dat){
     location = case_when(
       stringr::str_detect(location, pattern = regex("ag"))        ~ "Ago-owu",
       stringr::str_detect(location, pattern = regex("ib"))        ~ "Ibadan",
-      stringr::str_detect(location, pattern = regex("mk"))        ~ "Mokwa",
+      stringr::str_detect(location, paste(c("mk", "mok"), collapse = '|'))        ~ "Mokwa",
       stringr::str_detect(location, pattern = regex("on"))        ~ "Onne",
       stringr::str_detect(location, pattern = regex("ot"))        ~ "Otobi",
       stringr::str_detect(location, pattern = regex("ub"))        ~ "Ubiaja",
@@ -54,22 +54,22 @@ attach_locs <- function(dat){
   ) %>%
     mutate(
       long = case_when(
-        location == "Ago-owu"      ~ locs %>% filter(location=="Ago-owu") %>% select(long) %>% as.numeric(),
-        location == "Ibadan"      ~ locs %>% filter(location=="Ibadan") %>% select(long) %>% as.numeric(),
-        location == "Mokwa"      ~ locs %>% filter(location=="Mokwa") %>% select(long) %>% as.numeric(),
-        location == "Onne"      ~ locs %>% filter(location=="Onne") %>% select(long) %>% as.numeric(),
-        location == "Otobi"      ~ locs %>% filter(location=="Otobi") %>% select(long) %>% as.numeric(),
-        location == "Ubiaja"      ~ locs %>% filter(location=="Ubiaja") %>% select(long) %>% as.numeric()
+        location == "Ago-owu"      ~ locs %>% filter(location=="Ago-owu") %>% dplyr::select(long) %>% as.numeric(),
+        location == "Ibadan"      ~ locs %>% filter(location=="Ibadan") %>% dplyr::select(long) %>% as.numeric(),
+        location == "Mokwa"      ~ locs %>% filter(location=="Mokwa") %>% dplyr::select(long) %>% as.numeric(),
+        location == "Onne"      ~ locs %>% filter(location=="Onne") %>% dplyr::select(long) %>% as.numeric(),
+        location == "Otobi"      ~ locs %>% filter(location=="Otobi") %>% dplyr::select(long) %>% as.numeric(),
+        location == "Ubiaja"      ~ locs %>% filter(location=="Ubiaja") %>% dplyr::select(long) %>% as.numeric()
       )
     ) %>%
     mutate(
       lat = case_when(
-        location == "Ago-owu"      ~ locs %>% filter(location=="Ago-owu") %>% select(lat) %>% as.numeric(),
-        location == "Ibadan"      ~ locs %>% filter(location=="Ibadan") %>% select(lat) %>% as.numeric(),
-        location == "Mokwa"      ~ locs %>% filter(location=="Mokwa") %>% select(lat) %>% as.numeric(),
-        location == "Onne"      ~ locs %>% filter(location=="Onne") %>% select(lat) %>% as.numeric(),
-        location == "Otobi"      ~ locs %>% filter(location=="Otobi") %>% select(lat) %>% as.numeric(),
-        location == "Ubiaja"      ~ locs %>% filter(location=="Ubiaja") %>% select(lat) %>% as.numeric()
+        location == "Ago-owu"      ~ locs %>% filter(location=="Ago-owu") %>% dplyr::select(lat) %>% as.numeric(),
+        location == "Ibadan"      ~ locs %>% filter(location=="Ibadan") %>% dplyr::select(lat) %>% as.numeric(),
+        location == "Mokwa"      ~ locs %>% filter(location=="Mokwa") %>% dplyr::select(lat) %>% as.numeric(),
+        location == "Onne"      ~ locs %>% filter(location=="Onne") %>% dplyr::select(lat) %>% as.numeric(),
+        location == "Otobi"      ~ locs %>% filter(location=="Otobi") %>% dplyr::select(lat) %>% as.numeric(),
+        location == "Ubiaja"      ~ locs %>% filter(location=="Ubiaja") %>% dplyr::select(lat) %>% as.numeric()
       )
     )
   return(piv2)
@@ -77,7 +77,7 @@ attach_locs <- function(dat){
 
 
 pivot_wider_function <- function(imported_data){
-  uytdata <- wrangle_data(imported_data) %>% select(-c(long, lat))
+  uytdata <- wrangle_data(imported_data) %>% dplyr::select(-c(long, lat))
   uytdata <- uytdata %>% pivot_wider(names_from = "location", values_from = "values")
   return(uytdata)
 }
@@ -222,7 +222,7 @@ calc_checkMean <- function(dataframe, checks){
 
   # dataset for percentage difference against checks average
   dataframe_checkdiff <- dataframe %>%
-    select(-index) %>%
+    dplyr::select(-index) %>%
     mutate(across(where(is.numeric), .fns = ~((./.[accession == "check_mean"]-1)*100))) %>%
     mutate(index=dataframe$index) %>%
     mutate(rank = factor(row_number()))
@@ -553,8 +553,8 @@ barplot_checkdiff <- function(import_data){
   print(import_data)
   barplot_checkdiff <- import_data %>%
     # filter(accession == acc_names[i]) %>%
-    select(-c(rtwt, mcmds, mcmdi)) %>%
-    select(accession,fyld,dyld,dm,shtwt,everything()) %>%
+    dplyr::select(-c(rtwt, mcmds, mcmdi)) %>%
+    dplyr::select(accession,fyld,dyld,dm,shtwt,everything()) %>%
     pivot_longer(-c(accession,rank,index), names_to = "traits", values_to = "values") %>%
 
     # group_by(traits) %>%
