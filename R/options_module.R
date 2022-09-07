@@ -1,11 +1,11 @@
 source("hello.R")
-source("_functions.R")
+source("functions.R")
 
 
 options_ui <- function(id, trigger){
   ns <- NS(id)
   tagList(
-    bsModal(id = ns("settingsModal"), title = "Settings", trigger = trigger, size = "small",
+    shinyBS::bsModal(id = ns("settingsModal"), title = "Settings", trigger = trigger, size = "small",
             fileInput(placeholder = "Please upload BLUPS data...",inputId = ns("location_dataset"), accept = c("csv","xlsx"), buttonLabel = "Trial",
                       label = ""),
             pickerInput(
@@ -81,7 +81,7 @@ options_ui <- function(id, trigger){
         label = "Select checks",
         choices = c(get_AccessionNames()),
         multiple = TRUE,
-        selected = c(get_AccessionNames()[1:3]),
+        selected = get_checks(get_AccessionNames()),
         options = pickerOptions(
           liveSearch = TRUE,
           style = "btn-primary",

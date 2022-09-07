@@ -1,7 +1,8 @@
-source("hello.R")
-source("_functions.R")
-source("options_module.R")
+# source("hello.R")
+# source("functions.R")
+# source("options_module.R")
 
+#' @importFrom shiny NS tagList
 
 cards_UI <- function(id){
 

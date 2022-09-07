@@ -1,7 +1,11 @@
-lev1 <- st_read("NGA_population_v1_2_admin/NGA_population_v1_2_admin_level2_boundaries.shp")
-tmax_mean_nigeria_df <- readRDS("../temp_mean_nga_df.rds")
+# source("hello.R")
+#
+lev1 <- sf::st_read("../data/NGA_population_v1_2_admin/NGA_population_v1_2_admin_level2_boundaries.shp")
+tmax_mean_nigeria_df <- readRDS("../data/temp_mean_nga_df.rds")
 # elevation_data <- readRDS("elevation_df.rds")
-prec_data <- readRDS("prec_df.rds")
+prec_data <- readRDS("../data/prec_df.rds")
+
+
 Sys.setenv("OPENWEATHERMAP" = 'a6b73d4691567a29fcdf94a762540b9b')
 
 
@@ -293,3 +297,6 @@ render_leaflet_maps <- function(dataframe, checks, trait, accessions, weather, s
   }
   return(leaf_X)
 }
+
+
+

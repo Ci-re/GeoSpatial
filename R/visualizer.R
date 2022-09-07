@@ -1,8 +1,3 @@
-source("hello.R")
-source("_functions.R")
-source("_2function.R")
-source("options_module.R")
-source("mapsfunction.R")
 
 
 visualizer_UI <- function(id){
@@ -69,6 +64,15 @@ visualizer_UI <- function(id){
                                       "Wind" = "wind"),
                                     selected = "rainClassic")
             )
+      )),
+
+      tabPanel(title = "Trait X Env", icon = icon("chart"), fluidRow(
+        box(width = 12,
+            column(6, uiOutput(ns("select_accessions_trt"))),
+            column(6, uiOutput(ns("select_checks_trt")))
+        )
+      ), fluidRow(
+        box(width = 9, plotlyOutput(ns("tile_plot"), width = "100%", height = "800px")),
       ))
     )
   )
@@ -376,6 +380,39 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
       return(render_leaflet_map)
     })
 
+    ################################# GGTiles ##########################################3
+    output$select_accessions_trt <- renderUI({
+      req(combined_dataframe)
+      pickerInput(
+        inputId = session$ns("select_accession_trt"),
+        label = "Genotype..",
+        choices = unique(combined_dataframe$accession),
+        selected = combined_dataframe$accession[1],
+        multiple = TRUE
+      )
+    })
+
+    output$select_checks_trt <- renderUI({
+      req(combined_dataframe)
+      # sorted_combined <- combined_dataframe %>% arrange(desc(combined))
+      print(combined_dataframe)
+      pickerInput(
+        inputId = session$ns("select_checks_trt"),
+        label = "Checks..",
+        choices = unique(combined_dataframe$accession),
+        selected = combined_dataframe$accession[1],
+        multiple = TRUE
+      )
+    })
+
+    output$tile_plot <- renderPlotly({
+      req(input$select_accession_trt)
+      checksr <- input$select_checks_trt
+      accession <- input$select_accession_trt
+      combined_diff <- general_check_diff(combined_dataframe, checksr)
+      plt <- tilesplot_trait_env(combined_diff, accession)
+      return(ggplotly(plt))
+    })
   })
 }
 
