@@ -1,0 +1,13 @@
+name: GeoSpatial
+title: GeoSpatial
+username:
+account: cirec
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6941374
+bundleId: 6280688
+url: https://cirec.shinyapps.io/GeoSpatial/
+when: 1662621486.35419
+lastSyncTime: 1662621486.35421
+asMultiple: FALSE
+asStatic: FALSE

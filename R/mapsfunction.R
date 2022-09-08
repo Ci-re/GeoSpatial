@@ -1,9 +1,9 @@
 # source("hello.R")
 #
-lev1 <- sf::st_read("../data/NGA_population_v1_2_admin/NGA_population_v1_2_admin_level2_boundaries.shp")
-tmax_mean_nigeria_df <- readRDS("../data/temp_mean_nga_df.rds")
+lev1 <- sf::st_read("data/NGA_population_v1_2_admin/NGA_population_v1_2_admin_level2_boundaries.shp")
+tmax_mean_nigeria_df <- readRDS("data/temp_mean_nga_df.rds")
 # elevation_data <- readRDS("elevation_df.rds")
-prec_data <- readRDS("../data/prec_df.rds")
+prec_data <- readRDS("data/prec_df.rds")
 
 
 Sys.setenv("OPENWEATHERMAP" = 'a6b73d4691567a29fcdf94a762540b9b')
@@ -28,11 +28,11 @@ render_maps <- function(dataframe, checks, trait, accessions, weather, switch){
   dataframe_values <- pivot_wider_function(dataframe) %>% filter(trait == traits) %>%
     janitor::clean_names() %>% attach_locs() %>%
     mutate(category = if_else(accession %in% checks, "checks","selection")) %>%
-    filter(accession == accessions)
+    filter(accession %in% accessions)
   dataframe_difference <- pivot_wider_function(dataframe) %>% filter(trait == traits) %>%
     janitor::clean_names() %>% calculate_checkmean(checks) %>% attach_locs() %>%
     mutate(category = if_else(accession %in% checks, "checks","selection")) %>%
-    filter(accession == accessions)
+    filter(accession %in% accessions)
 
   # print(dataframe_difference)
 
@@ -94,13 +94,13 @@ render_maps <- function(dataframe, checks, trait, accessions, weather, switch){
                                                                         "<b> accession: ", accession, "</b> \n",
                                                                         "<b>",trait_sel ,":",values,"</b>")), fill = "blue")+
         # scale_color_viridis_c() +
-        scale_color_viridis(discrete = FALSE, option = "C")+
+        scale_color_viridis(discrete = FALSE, option = "D")+
         # scale_color_manual(values = c("darkblue", "blue")) +
         # coord_sf(xlim = c(2, 6), ylim = c(6, 10), expand = FALSE) +
         # geom_sf_text(data = lev1, aes(label = statename)) +
         # theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed",
         #                                       size = 0.5), panel.background = element_rect(fill = "aliceblue")) +
-        # facet_wrap(~fct_inorder(accession), ncol = 2) +
+        facet_wrap(~fct_inorder(accession), ncol = 2) +
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
         labs(x = "Longitude", y = "Latitude", title = "Historical Annual Mean Rainfall")
     } else {
@@ -111,13 +111,14 @@ render_maps <- function(dataframe, checks, trait, accessions, weather, switch){
                                                                             "<b> accession: ", accession, "</b> \n",
                                                                             "<b>",trait_sel ,":",values,"</b>")))+
         # scale_color_viridis_c() +
-        scale_color_viridis(discrete = FALSE, option = "C")+
+        scale_color_viridis(discrete = FALSE, option = "D")+
+        # scale_color_hue(l = 12, discrete = FALSE) +
         # scale_color_manual(values = c("darkblue", "blue")) +
         # coord_sf(xlim = c(2, 6), ylim = c(6, 10), expand = FALSE) +
         # geom_sf_text(data = lev1, aes(label = statename)) +
         # theme(panel.grid.major = element_line(color = gray(0.5), linetype = "dashed",
         #                                       size = 0.5), panel.background = element_rect(fill = "aliceblue")) +
-        # facet_wrap(~fct_inorder(accession), ncol = 2) +
+        facet_wrap(~fct_inorder(accession), ncol = 2) +
         theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
         labs(x = "Longitude", y = "Latitude", title = "Historical Annual Mean Rainfall")
     }
@@ -126,14 +127,23 @@ render_maps <- function(dataframe, checks, trait, accessions, weather, switch){
 
 render_leaflet_maps <- function(dataframe, checks, trait, accessions, weather, switch){
   traits <- toupper(trait)
-  dataframe_values <- pivot_wider_function(dataframe) %>% filter(trait == traits) %>%
-    janitor::clean_names() %>% attach_locs() %>%
+  dataframe_values <- pivot_wider_function(dataframe) %>% filter(trait == traits)
+  dataframe_values <- dataframe_values[ , colSums(is.na(dataframe_values)) < nrow(dataframe_values)]
+
+  dataframe_values<- dataframe_values %>% janitor::clean_names() %>% attach_locs() %>%
     mutate(category = if_else(accession %in% checks, "checks","selection")) %>%
-    filter(accession == accessions)
-  dataframe_difference <- pivot_wider_function(dataframe) %>% filter(trait == traits) %>%
-    janitor::clean_names() %>% calculate_checkmean(checks) %>% attach_locs() %>%
+    filter(accession == accessions[length(accessions)])
+
+  dataframe_difference <- pivot_wider_function(dataframe) %>% filter(trait == traits)
+  dataframe_difference <- dataframe_difference[ , colSums(is.na(dataframe_difference)) < nrow(dataframe_difference)]
+  dataframe_difference <- dataframe_difference %>% janitor::clean_names() %>% calculate_checkmean(checks) %>% attach_locs() %>%
     mutate(category = if_else(accession %in% checks, "checks","selection")) %>%
-    filter(accession == accessions)
+    filter(accession == accessions[length(accessions)])
+
+
+  print(dataframe_values)
+  print(dataframe_difference)
+
 
     trait_sel <- ""
 
@@ -203,29 +213,29 @@ render_leaflet_maps <- function(dataframe, checks, trait, accessions, weather, s
                  label = ~location,
                  group = "location",
                  popup = ~paste("<table>
-                                            <tr>
-                                              <th> Variable </th>
-                                              <th> Value </th>
-                                            </tr>
-                                            <tr>
-                                              <td> Accession </td>
-                                              <td>",accession ,"</td>
-                                            </tr>
-                                            <tr>
-                                              <td>",trait_sel , "</td>
-                                              <td>",values ,"</td>
-                                            </tr>
-                                            <tr>
-                                              <td> Location </td>
-                                              <td>",location ,"</td>
-                                            </tr>
-                                            <tr>
-                                              <td> Category </td>
-                                              <td>",category ,"</td>
-                                            </tr>
-                                          </table>")) %>%
+                                  <tr>
+                                    <th> Variable </th>
+                                    <th> Value </th>
+                                  </tr>
+                                  <tr>
+                                    <td> Accession </td>
+                                    <td>",accession ,"</td>
+                                  </tr>
+                                  <tr>
+                                    <td>",trait_sel , "</td>
+                                    <td>",values ,"</td>
+                                  </tr>
+                                  <tr>
+                                    <td> Location </td>
+                                    <td>",location ,"</td>
+                                  </tr>
+                                  <tr>
+                                    <td> Category </td>
+                                    <td>",category ,"</td>
+                                  </tr>
+                                </table>")) %>%
       addResetMapButton() %>%
-      addOpenweatherTiles(layers = "rainClassic") %>%
+      addOpenweatherTiles(layers = weather) %>%
       addSearchFeatures(targetGroups = "location",
                         options = searchFeaturesOptions(
                           openPopup = TRUE, zoom = 12,
@@ -285,7 +295,7 @@ render_leaflet_maps <- function(dataframe, checks, trait, accessions, weather, s
                                             </tr>
                                           </table>")) %>%
         setView(lng = 9.0820, lat = 8.6753, zoom = 6) %>%
-        addOpenweatherTiles(layers = "RainClassic") %>%
+        addOpenweatherTiles(layers = weather) %>%
         addLayersControl(
           # overlayGroups = c("Rain","Temperature"),
           options = layersControlOptions(collapsed = FALSE))

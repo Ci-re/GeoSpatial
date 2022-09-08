@@ -11,18 +11,18 @@ visualizer_UI <- function(id){
       id = "GxSindex",
       tabPanel(title = "Genotype X sindex", icon = icon("bar-chart"), fluidRow(
         box(width = 12,
-          column(4, uiOutput(ns("sort_sindex"))),
-          column(4, uiOutput(ns("select_top"))),
-          column(4, uiOutput(ns("color_scales"))),
+          column(4, withSpinner(uiOutput(ns("sort_sindex")))),
+          column(4, withSpinner(uiOutput(ns("select_top")))),
+          column(4, withSpinner(uiOutput(ns("color_scales")))),
         )
       ), fluidRow(
-        box(width = 6, DT::dataTableOutput(ns("raw_distribution"))),
-        box(width = 6, DT::dataTableOutput(ns("check_mean_distribution"))),
-        box(width = 9, plotlyOutput(ns("correlation"), height = "800px", width = "100%")),
+        box(width = 6, withSpinner(DT::dataTableOutput(ns("raw_distribution")))),
+        box(width = 6, withSpinner(DT::dataTableOutput(ns("check_mean_distribution")))),
+        box(width = 9, withSpinner(plotlyOutput(ns("correlation"), height = "800px", width = "100%"))),
         box(width = 3),
-        box(width = 9, plotOutput(ns("heatmaps"), width = "100%", height = "1200px")),
+        box(width = 9, withSpinner(plotOutput(ns("heatmaps"), width = "100%", height = "1200px"))),
         box(width = 3, column(3, uiOutput(ns("heatmap_hint")))),
-        box(width = 9, plotOutput(ns("check_diff_plot"), width = "100%", height = "1500px")),
+        box(width = 9, withSpinner(plotOutput(ns("check_diff_plot"), width = "100%", height = "1500px"))),
         box(width = 3, uiOutput(ns("top_frac")))
       )),
       tabPanel(title = "Genotype X Env", icon = icon("bar-chart"), fluidRow(
@@ -32,14 +32,14 @@ visualizer_UI <- function(id){
           column(4, uiOutput(ns("trait"))),
         )
       ), fluidRow(
-        box(width = 6, DT::dataTableOutput(ns("raw_distribution_env"))),
-        box(width = 6, DT::dataTableOutput(ns("check_mean_distribution_env"))),
+        box(width = 6, withSpinner(DT::dataTableOutput(ns("raw_distribution_env")))),
+        box(width = 6, withSpinner(DT::dataTableOutput(ns("check_mean_distribution_env")))),
 
         box(width = 9, plotlyOutput(ns("correlation_env"), width = "100%", height = "800px")),
         box(width = 3),
-        box(width = 9, plotOutput(ns("heatmaps_env"), width = "100%", height = "1200px")),
-        box(width = 3, uiOutput(ns("corr_heat_env"))),
-        box(width = 9, plotOutput(ns("check_diff_plot_env"), width = "100%", height = "1500px")),
+        box(width = 9, withSpinner(plotOutput(ns("heatmaps_env"), width = "100%", height = "1200px"))),
+        box(width = 3, withSpinner(uiOutput(ns("corr_heat_env")))),
+        box(width = 9, withSpinner(plotOutput(ns("check_diff_plot_env"), width = "100%", height = "1500px"))),
         box(width = 3, uiOutput(ns("top_frac_env")))
       )),
 
@@ -51,28 +51,30 @@ visualizer_UI <- function(id){
           column(3, uiOutput(ns("weather")))
         )
       ), fluidRow(
-        box(width = 9, plotlyOutput(ns("accession_map"), width = "100%", height = "800px")),
-        box(width = 3, uiOutput(ns("check_difference_toggler"))),
+        box(
+          uiOutput(ns("check_difference_toggler")),
+          width = 12, withSpinner(plotlyOutput(ns("accession_map"), width = "100%", height = "800px"))),
+        # box(width = 3, ),
         # box(width = 12, plotlyOutput(ns("check_map"))),
-        box(width = 9, leafletOutput(ns("live_map"))),
-        box(width = 3, radioButtons("weather", "Real time view:",
-                                    c("Rain" = "rainClassic",
+        box(width = 9, withSpinner(leafletOutput(outputId = ns("live_map"), width = "100%", "900px"))),
+        box(width = 3, radioButtons(inputId = ns("weather2"), label = "Real time view:",
+                                     c("Rain" = "rainClassic",
                                       "Temperature" = "temperature",
                                       "Precipitation" = "precipitationClassic",
                                       "Clouds" = "cloudsClassic",
                                       "Pressure" = "pressure",
                                       "Wind" = "wind"),
-                                    selected = "rainClassic")
+                                    selected = "precipitationClassic")
             )
       )),
 
       tabPanel(title = "Trait X Env", icon = icon("chart"), fluidRow(
         box(width = 12,
-            column(6, uiOutput(ns("select_accessions_trt"))),
-            column(6, uiOutput(ns("select_checks_trt")))
+            column(6, withSpinner(uiOutput(ns("select_accessions_trt")))),
+            column(6, withSpinner(uiOutput(ns("select_checks_trt"))))
         )
       ), fluidRow(
-        box(width = 9, plotlyOutput(ns("tile_plot"), width = "100%", height = "800px")),
+        box(width = 12, withSpinner(plotlyOutput(ns("tile_plot"), width = "100%", height = "1000px"))),
       ))
     )
   )
@@ -227,7 +229,7 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
         min = 1,
         step = 1,
         max = max_obs,
-        value = 4,
+        value = 10,
       )
     })
 
@@ -319,7 +321,13 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
         label = "Checks..",
         choices = unique(combined_dataframe$accession),
         selected = combined_dataframe$accession[1:3],
-        multiple = TRUE
+        multiple = TRUE,
+        options = pickerOptions(
+          liveSearch = TRUE,
+          style = "btn-primary",
+          `action-box` = TRUE,
+          size = 10
+        )
       )
     })
     output$select_accession <- renderUI({
@@ -329,7 +337,13 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
         label = "Genotype..",
         choices = unique(combined_dataframe$accession),
         selected = combined_dataframe$accession[1],
-        multiple = FALSE
+        multiple = TRUE,
+        options = pickerOptions(
+          liveSearch = TRUE,
+          style = "btn-primary",
+          `action-box` = TRUE,
+          size = 10
+        )
       )
     })
     output$weather <- renderUI({
@@ -367,11 +381,8 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
 
     output$live_map <- renderLeaflet({
       req(input$select_accession)
-      req(input$select_check)
-      req(input$weather)
-
       genotype <- input$select_accession
-      weather_data <- input$weather
+      weather_data <- input$weather2
       checks <- input$select_check
       trait <- input$select_trait
       switchs <- input$check_difference_toggler
@@ -388,7 +399,13 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
         label = "Genotype..",
         choices = unique(combined_dataframe$accession),
         selected = combined_dataframe$accession[1],
-        multiple = TRUE
+        multiple = TRUE,
+        options = pickerOptions(
+          liveSearch = TRUE,
+          style = "btn-primary",
+          `action-box` = TRUE,
+          size = 10
+        )
       )
     })
 
@@ -401,7 +418,13 @@ visualizer_SERVER <- function(id, sindex_dataframe, combined_dataframe, checks){
         label = "Checks..",
         choices = unique(combined_dataframe$accession),
         selected = combined_dataframe$accession[1],
-        multiple = TRUE
+        multiple = TRUE,
+        options = pickerOptions(
+          liveSearch = TRUE,
+          style = "btn-primary",
+          `action-box` = TRUE,
+          size = 10
+        )
       )
     })
 

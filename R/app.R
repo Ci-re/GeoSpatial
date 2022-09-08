@@ -11,14 +11,15 @@ rApp <- function(...){
   options(shiny.autoreload = TRUE)
   # setwd("~/Desktop/git_workspace/GeoSpatial/R")
   ui <- shinydashboard::dashboardPage(skin = "black",
-            shinydashboard::dashboardHeader(title = HTML("MULTILOC"), disable = FALSE, tags$li(class = "dropdown",
-                                                                                         actionButton("settings", "",
-                                                                                                      icon = icon("gear"), class = "btn-primary",
-                                                                                                      style = "position: absolute; top: 10px; right: 40px"))),
+            shinydashboard::dashboardHeader(title = HTML("MULTILOC"),
+                                            disable = FALSE, tags$li(class = "dropdown",
+                                             actionButton("settings", "",
+                                                          icon = icon("gear"), class = "btn-primary",
+                                                          style = "position: absolute; top: 10px; right: 40px"))),
             shinydashboard::dashboardSidebar(disable = TRUE),
             shinydashboard::dashboardBody(
                         tags$style(type = "text/css", "#map {height: calc(100vh - 53px) !important;}"),
-                        includeCSS("../www/style.css"),
+                        includeCSS("www/style.css"),
                         # fixedPanel(top = 0,bottom = "20px", width = "100%", draggable = FALSE, right = "20px",left = "20px",
                         #   fluidRow(style = "padding-top:10px;background-color:#000; border-radius: 10px; margin: 90px; z-index: 1; margin-bottom: 800px;",
                         #     column(6, h2("MULTILOC", class = "app-header")),
