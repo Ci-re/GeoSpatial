@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500&family=Poppins:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600;700&family=Montserrat:wght@300;500&family=Poppins:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600;700&family=Montserrat:wght@300;500&family=Poppins:wght@300&family=Raleway:wght@600&display=swap');
 
 
 body {
@@ -26,6 +28,21 @@ body {
   padding-top: 0px;
   margin-top: 0px;
   background-color: #ffffff;
+}
+
+.skin-black .main-header>.logo {
+    background-color: #fff;
+    color: #000;
+    font-family: 'Raleway', sans-serif;
+    border-bottom: 0 solid transparent;
+    border-right: 1px solid #eee;
+}
+.skin-black .main-header>.logo:hover {
+    background-color: #fff;
+    color: #000;
+    font-family: 'Raleway', sans-serif;
+    border-bottom: 0 solid transparent;
+    border-right: 1px solid #eee;
 }
 
 .clone-name {
@@ -64,7 +81,15 @@ li.active a{
 .nav-tabs-custom>.nav-tabs>li>a {
     color: #150d3d;
     border-radius: 0;
+}
 
+.nav-tabs-custom>.nav-tabs>li.header {
+    line-height: 35px;
+    padding: 0 10px;
+    font-size: 30px;
+    font-weight: 150px;
+    color: #DB2955;
+    font-family: 'Dancing Script', cursive;
 }
 
 .nav-tabs-custom .nav-tabs {

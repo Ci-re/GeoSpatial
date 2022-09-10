@@ -11,7 +11,7 @@ rApp <- function(...){
   options(shiny.autoreload = TRUE)
   # setwd("~/Desktop/git_workspace/GeoSpatial/R")
   ui <- shinydashboard::dashboardPage(skin = "black",
-            shinydashboard::dashboardHeader(title = HTML("MULTILOC"),
+            shinydashboard::dashboardHeader(title = HTML("Multi-location Trial Visualizer"),titleWidth = 400,
                                             disable = FALSE, tags$li(class = "dropdown",
                                              actionButton("settings", "",
                                                           icon = icon("gear"), class = "btn-primary",
@@ -32,7 +32,7 @@ rApp <- function(...){
                         # ),
                         fluidRow(style = "padding-top:10px;background-color:#fcfcee; border-radius: 10px;" ,
                                  options_ui("settingsID", trigger = "settings"),
-                                 fluidRow(style = "padding-top:10px;background-color:inherit; padding-bottom: 150px; margin: 2px;",
+                                 fluidRow(style = "padding-top:10px;background-color:inherit; padding-bottom: 15px; margin: 2px;",
                                           column(4, class = "header-row", withSpinner(type = 6,cards_UI("firstCard"))),
                                           column(4, class = "header-row", withSpinner(type = 6,cards_UI("secondCard"))),
                                           column(4, class = "header-row", withSpinner(type = 6,cards_UI("thirdCard"))),
@@ -72,11 +72,12 @@ rApp <- function(...){
 
     renderUIs <- reactive({
       req(traits())
-      cards_server(id = "firstCard", traitr = traits()$selected[1],
+      print(traits()$checks)
+      cards_server(id = "firstCard", traitr = traits()$selected[1], checks = traits()$checks, acc_range = traits()$range_acc,
                    icon1 = "chart-pie", color = "teal", dataframe = traits()$dataframes$env, plot_choice = traits()$option)
-      cards_server(id = "secondCard", traitr = traits()$selected[2],
+      cards_server(id = "secondCard", traitr = traits()$selected[2], checks = traits()$checks, acc_range = traits()$range_acc,
                    icon1 = "chart-line", color = "blue", dataframe = traits()$dataframes$env, plot_choice = traits()$option)
-      cards_server(id = "thirdCard", traitr = traits()$selected[3],
+      cards_server(id = "thirdCard", traitr = traits()$selected[3], checks = traits()$checks, acc_range = traits()$range_acc,
                    icon1 = "code-branch", color = "red", dataframe = traits()$dataframes$env, plot_choice = traits()$option)
       visualizer_SERVER("visualizerID", checks = traits()$checks, sindex_dataframe = traits()$dataframes$sindex,
                         combined_dataframe = traits()$dataframes$env)

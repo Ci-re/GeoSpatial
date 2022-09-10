@@ -125,6 +125,8 @@ render_maps <- function(dataframe, checks, trait, accessions, weather, switch){
     return(tf_val)
 }
 
+
+
 render_leaflet_maps <- function(dataframe, checks, trait, accessions, weather, switch){
   traits <- toupper(trait)
   dataframe_values <- pivot_wider_function(dataframe) %>% filter(trait == traits)
@@ -143,7 +145,6 @@ render_leaflet_maps <- function(dataframe, checks, trait, accessions, weather, s
 
   print(dataframe_values)
   print(dataframe_difference)
-
 
     trait_sel <- ""
 

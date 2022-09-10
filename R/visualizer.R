@@ -1,4 +1,4 @@
-
+?icon
 
 visualizer_UI <- function(id){
   ns <- NS(id)
@@ -6,10 +6,10 @@ visualizer_UI <- function(id){
     chooseSliderSkin("Flat", color = "black"),
     tabBox(
       width = 12,
-      title = "Hello World",
+      title = "Hello Cassava!!",
       # The id lets us use input$tabset1 on the server to find the current tab
       id = "GxSindex",
-      tabPanel(title = "Genotype X sindex", icon = icon("bar-chart"), fluidRow(
+      tabPanel(title = "Genotype X sindex", icon = icon("chart-column"), fluidRow(
         box(width = 12,
           column(4, withSpinner(uiOutput(ns("sort_sindex")))),
           column(4, withSpinner(uiOutput(ns("select_top")))),
@@ -25,7 +25,7 @@ visualizer_UI <- function(id){
         box(width = 9, withSpinner(plotOutput(ns("check_diff_plot"), width = "100%", height = "1500px"))),
         box(width = 3, uiOutput(ns("top_frac")))
       )),
-      tabPanel(title = "Genotype X Env", icon = icon("bar-chart"), fluidRow(
+      tabPanel(title = "Genotype X Env", icon = icon("chart-pie"), fluidRow(
         box(width = 12,
           column(4, uiOutput(ns("sort_combined"))),
           column(4, uiOutput(ns("select_top_env"))),
@@ -43,7 +43,7 @@ visualizer_UI <- function(id){
         box(width = 3, uiOutput(ns("top_frac_env")))
       )),
 
-      tabPanel(title = "Geographical Vix", icon = icon("chart"), fluidRow(
+      tabPanel(title = "Geographical Vix", icon = icon("chart-simple"), fluidRow(
         box(width = 12,
           column(3, uiOutput(ns("select_trait"))),
           column(3, uiOutput(ns("select_accession"))),
@@ -68,7 +68,7 @@ visualizer_UI <- function(id){
             )
       )),
 
-      tabPanel(title = "Trait X Env", icon = icon("chart"), fluidRow(
+      tabPanel(title = "Genotype X Env X Trait", icon = icon("chart-line"), fluidRow(
         box(width = 12,
             column(6, withSpinner(uiOutput(ns("select_accessions_trt")))),
             column(6, withSpinner(uiOutput(ns("select_checks_trt"))))

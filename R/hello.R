@@ -6,16 +6,18 @@
 
 # conflicted::conflict_prefer(name = "select", winner = "dplyr")
 # conflicted::conflict_prefer(name = "box", winner = "shinydashboard")
-
+# devtools::install_github("ricardo-bion/ggradar")
 library("shinydashboard")
 library("shiny")
 library("pkgload")
+library(GGally)
 library("tidyverse")
 library("ggplot2")
 # library(rmapshaper)
 library("leaflet")
 library("DT")
-# library(conflicted)
+library(fmsb)
+library("ggiraphExtra")# library(conflicted)
 library("ggcorrplot")
 library("viridis")
 library("leaflet.extras")
@@ -40,3 +42,4 @@ library("sf")
 library("cowplot")
 
 ########################## PACKAGES TO INSTALL AND LOAD ##################################################
+

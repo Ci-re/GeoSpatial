@@ -11,7 +11,8 @@ get_checks <- function(accession_list){
       }
     }
   }
-  print(unique(checks))
+  # print(unique(checks))
+  return(unique(checks))
 }
 
 fix_listOfTop_Traits <- function(original_list, top_traits){
@@ -90,31 +91,57 @@ pivot_wider_function <- function(imported_data){
   return(uytdata)
 }
 
-linePlot <- function(trait_to_plot, imported_data){
-  # listr <- c("dyld", "fyld", "")
 
+plotRadar <- function(trait_to_plot, imported_data, checks, accession_range){
+  uytdata <- pivot_wider_function(imported_data) %>% filter(trait == trait_to_plot)
+  uytdata_arr <- uytdata %>% mutate(category = if_else(accession %in% checks, "Checks", "Genotype")) %>%
+    janitor::clean_names() %>% select(accession, ago_owu, mokwa, ubiaja, ibadan, onne, otobi, combined)
+
+  if(trait_to_plot == "MCMDS"){
+    uytdata_arr <- uytdata_arr %>% arrange(combined)
+  }else {
+    uytdata_arr <- uytdata_arr %>% arrange(desc(combined))
+  }
+
+
+  uytdatax <- uytdata_arr[min(accession_range):max(accession_range),]
+  # colnames(uytdatax) <- paste0("loc_", 2:7)
+  print(uytdatax)
+  p <- ggRadar(data = uytdatax,mapping = aes(group = accession, label = accession), alpha = 0.1,  rescale = FALSE) +
+    theme_light(base_size = 18) +
+    theme(legend.position = "bottom", legend.box = "vertical")
+  p
+}
+
+ggRadar(data=iris,aes(color=Species),interactive=TRUE)
+ggRadar(data=mtcars,aes(colour=am))
+
+linePlot <- function(trait_to_plot, imported_data, checks, accession_range){
+  # listr <- c("dyld", "fyld", "")
   # imported_data <- read_csv("../../Visualizations/combo.csv")
   # trait_to_plot <- "MCMDS"
   uytdata <- pivot_wider_function(imported_data) %>% filter(trait == trait_to_plot)
   # uytdata %>% View()
   # ?top_frac
 
-  # class(trait_to_plot)
+  uytdata_arr <- uytdata %>% mutate(category = if_else(accession %in% checks, "Checks", "Genotype")) %>%
+    janitor::clean_names()
 
   if(trait_to_plot == "MCMDS"){
-    uytdata_arr <- uytdata %>% arrange(combined)
+    uytdata_arr <- uytdata_arr %>% arrange(combined)
   }else {
-    uytdata_arr <- uytdata %>% arrange(desc(combined))
+    uytdata_arr <- uytdata_arr %>% arrange(desc(combined))
   }
 
-  if(trait_to_plot == "SPROUT" || trait_to_plot == "MCMDS"){
-    uytdatax <- uytdata_arr[1:4,]
-  }else{
-    uytdatax <- uytdata_arr %>% top_frac(.1, combined)
-  }
+  # if(trait_to_plot == "SPROUT" || trait_to_plot == "MCMDS"){
+  #   uytdatax <- uytdata_arr[1:4,]
+  # }else{
+  #   uytdatax <- uytdata_arr %>% top_frac(.1, combined)
+  # }
 
+  uytdatax <- uytdata_arr[min(accession_range):max(accession_range),]
 
-  x <- uytdatax %>% pivot_longer(-c(trait, accession),
+  x <- uytdatax %>% pivot_longer(-c(trait, accession, combined),
                                  names_to = "location", values_to = "values")
   full_names <- list("MCMDS" = "Cassava Mosaic", "HI" = "Harvest Index", "DM" = "Dry Matter",
                      "SPROUT" = "Sprout", "DYLD" = "Dry yield", "FYLD" = "Fresh yield", "PLTHT" = "Plant Height")
@@ -123,14 +150,16 @@ linePlot <- function(trait_to_plot, imported_data){
     geom_point() +
     geom_line()  +
     theme_grey() +
-    theme(legend.position = 'none',
+    theme(legend.position = "none",
           plot.background = element_rect(fill = "#fcfcee",colour = "#cecece")) +
     # plot.caption = element_text("Hello",face = "italics")) +
-    labs(x = "Location", y = full_names[trait_to_plot]) +
+    labs(x = "Location", y = trait_to_plot) +
     # guides(fill = "none") +
     geom_text_repel(max.overlaps = Inf, box.padding = 0.5,
                     aes(group = accession, label = if_else(location == "Mokwa",accession,""),
                         max.overlaps = 5))
+  p <- ggplotly(p)
+    # layout(legend = list(orientation = "h", x = 0.4, y = -0.2))
 
   return(p)
 }
@@ -207,8 +236,6 @@ linePlot_environment <- function(trait_to_plot, imported_data){
   #                 aes(group = trait, label = if_else(location == "Mokwa",accession,""),
   #                     max.overlaps = 5))
 
-
-
   return(p)
 
 }
@@ -229,7 +256,7 @@ calc_checkMean <- function(dataframe, checks){
   # dataset for percentage difference against checks average
   dataframe_checkdiff <- dataframe %>%
     dplyr::select(-index) %>%
-    mutate(across(where(is.numeric), .fns = ~((./.[accession == "check_mean"]-1)*100))) %>%
+    mutate(across(where(is.numeric), .fns = ~(round(x = (./.[accession == "check_mean"]-1)*100, digits = 2)))) %>%
     mutate(index=dataframe$index) %>%
     mutate(rank = factor(row_number()))
   return(dataframe_checkdiff)
@@ -282,7 +309,7 @@ get_SI_from_BLUPS <- function(imported_data) {
   }
   list_of_excels <- mysheets_fromexcel %>% purrr::discard(is.null)
   list_of_excels <- list_of_excels[[1]]
-  print(class(list_of_excels))
+  # print(class(list_of_excels))
   return(as.data.frame(list_of_excels))
 }
 

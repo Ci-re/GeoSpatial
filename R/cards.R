@@ -2,18 +2,18 @@
 # source("functions.R")
 # source("options_module.R")
 
-#' @importFrom shiny NS tagList
-
 cards_UI <- function(id){
 
   ns <- NS(id)
   tagList(
-    infoBoxOutput(outputId = ns("toptraits"), width = 12),
-    plotOutput(outputId = ns("lineplot"), width = "100%", height = "200px")
+    infoBoxOutput(outputId = ns("toptraits"), width = "100%"),
+    br(),
+    plotOutput(outputId = ns("lineplot"), width = "100%", height = "400px"),
+    infoBoxOutput(outputId = ns("checks"))
   )
 }
 
-cards_server <- function(id, traitr, color, dataframe, icon1, plot_choice){
+cards_server <- function(id, traitr, color, dataframe, icon1, plot_choice, checks, acc_range){
   moduleServer(id, function(input, output, session) {
 
     getValues <- eventReactive(dataframe, {
@@ -43,8 +43,9 @@ cards_server <- function(id, traitr, color, dataframe, icon1, plot_choice){
 
     output$lineplot <- renderPlot({
       req(getValues())
+      print(checks)
       if(plot_choice == TRUE){
-        uytdata <- linePlot(trait_to_plot = toupper(traitr), imported_data = dataframe)
+        uytdata <- plotRadar(trait_to_plot = toupper(traitr), imported_data = dataframe, checks = checks, accession_range = acc_range)
       } else if(plot_choice == FALSE) {
         uytdata <- linePlot_environment(trait_to_plot = toupper(traitr), imported_data = dataframe)
       }

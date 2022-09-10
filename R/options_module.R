@@ -28,11 +28,12 @@ options_ui <- function(id, trigger){
               inputId = ns("plot_option"), label = "Switch plot",
               status = "success", outline = TRUE,value = TRUE,
             ),
+            uiOutput(outputId = ns("accession_range")),
             # switchInput(inputId = ns("plot_option"), label = "Switch", value = TRUE),
             uiOutput(ns("checks_select")),
-            awesomeCheckbox(inputId = ns("select_check_option"),
-                            label = "Calculate Check Difference",
-                            value = FALSE, status = "success"),
+            # awesomeCheckbox(inputId = ns("select_check_option"),
+            #                 label = "Calculate Check Difference",
+            #                 value = FALSE, status = "success"),
             actionButton(ns("save"),"Load",icon = icon("chart-pie"),
                          style = "width: 100%", class = "btn-success")
     )
@@ -43,7 +44,9 @@ options_ui <- function(id, trigger){
 
  options_server <- function(id) {
   moduleServer(id, function(input, output, session) {
-    # toggleModal(session, "settingsModal",toggle = "toggle")
+
+
+
 
     userFile <- reactive({
       req(input$location_dataset)
@@ -91,10 +94,28 @@ options_ui <- function(id, trigger){
       )
     })
 
+    output$accession_range <- renderUI({
+      maxObs <- length(get_AccessionNames())
+      minObs <-  1
+      sliderInput(
+        inputId = session$ns("accession_range"),
+        label = h3("Range of Observation"),
+        min = 1,
+        max = maxObs,
+        value = c(1, 4),
+        step = 1
+      )
+    })
+
+    observeEvent(input$save, {
+      toggleModal(session, "settingsModal",toggle = "toggle")
+    })
+
     list_of_topTraits <- eventReactive(input$save, {
       # req(input$save)
       # plot_option()
       # print(input$plot_option)
+
       original_list <- c("dyld","fyld","dm","pltht","mcmds","sprout","hi")
       top_traits <- input$top_traits
       opt <- ""
@@ -105,11 +126,13 @@ options_ui <- function(id, trigger){
       }
       selected <- fix_listOfTop_Traits(original_list = original_list, top_traits =  top_traits)
       dataframes <- touch_data()
+      accession_range <- input$accession_range
       # print(input$checks_select)
-      list_return <- list(option = opt, selected = selected, checks = input$checks_select, dataframes = dataframes)
+      list_return <- list(option = opt, selected = selected, checks = input$checks_select, dataframes = dataframes, range_acc = accession_range)
       return(list_return)
     })
     return(list_of_topTraits)
+
   })
 }
 

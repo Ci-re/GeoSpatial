@@ -21,7 +21,7 @@ checks_mean
   # dataset for percentage difference against checks average
   dataframe_checkdiff <- dataframe %>%
     dplyr::select(-combined) %>%
-    mutate(across(where(is.numeric), .fns = ~((./.[accession == "check_mean"]-1)*100))) %>%
+    mutate(across(where(is.numeric), .fns = ~(round(x = (./.[accession == "check_mean"]-1)*100, digits = 2)))) %>%
     mutate(combined=dataframe$combined)
     # mutate(rank = factor(row_number()))
   return(dataframe_checkdiff)
